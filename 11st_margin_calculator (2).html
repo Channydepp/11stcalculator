@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11번가 MD 마진 계산기</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Bebas+Neue&display=swap');
+
+  :root {
+    --red: #E61C24;
+    --red-dark: #B5151B;
+    --red-light: #FF4D54;
+    --red-faint: #FFF0F0;
+    --red-border: #FFCCCF;
+    --white: #FFFFFF;
+    --gray-50: #F8F9FA;
+    --gray-100: #F1F3F5;
+    --gray-200: #E9ECEF;
+    --gray-300: #DEE2E6;
+    --gray-400: #CED4DA;
+    --gray-500: #ADB5BD;
+    --gray-600: #868E96;
+    --gray-700: #495057;
+    --gray-800: #343A40;
+    --gray-900: #212529;
+    --green: #1A8A4A;
+    --green-bg: #F0FAF4;
+    --blue: #1971C2;
+    --blue-bg: #EFF6FF;
+    --orange: #E07B00;
+    --orange-bg: #FFF8ED;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #F0F1F3;
+    color: var(--gray-900);
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--red);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(230,28,36,0.35);
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-logo .logo-badge {
+    background: var(--white);
+    color: var(--red);
+    font-family: 'Bebas Neue', cursive;
+    font-size: 22px;
+    letter-spacing: 1px;
+    padding: 3px 10px 2px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+  .header-logo .logo-text {
+    color: rgba(255,255,255,0.92);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .header-badge {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── LAYOUT ─── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .card:last-child { margin-bottom: 0; }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    background: var(--gray-50);
+  }
+  .card-number {
+    width: 24px; height: 24px;
+    background: var(--red);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-800);
+    letter-spacing: -0.2px;
+  }
+  .card-body { padding: 20px; }
+
+  /* ─── FORM ELEMENTS ─── */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.four  { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .form-row:last-child { margin-bottom: 0; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--gray-600);
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+  }
+  .field label span.req {
+    color: var(--red);
+    margin-left: 2px;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-wrap input[type="number"],
+  .input-wrap input[type="text"],
+  select {
+    width: 100%;
+    height: 40px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    padding: 0 36px 0 12px;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--gray-900);
+    background: var(--white);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .input-wrap input:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(230,28,36,0.1);
+  }
+  .input-wrap .unit {
+    position: absolute;
+    right: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-500);
+    pointer-events: none;
+  }
+  select {
+    padding: 0 32px 0 12px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23868E96' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* ─── SHARE RATIO ─── */
+  .share-group {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-top: 10px;
+  }
+  .share-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gray-500);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .share-inputs {
+    display: grid;
+    gap: 8px;
+  }
+  .share-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .share-tag {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    min-width: 64px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .tag-11st    { background: #FFE8E9; color: var(--red-dark); }
+  .tag-seller  { background: #EEF2FF; color: #3451B2; }
+  .tag-maker   { background: #F0FAF4; color: var(--green); }
+  .tag-other   { background: #FFF8ED; color: var(--orange); }
+
+  .share-item .input-wrap {
+    flex: 1;
+  }
+  .share-item .input-wrap input {
+    padding-right: 28px;
+  }
+  .share-total {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .share-total .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gray-400);
+    flex-shrink: 0;
+  }
+  .share-total-num { color: var(--gray-700); }
+  .share-total-num.ok  { color: var(--green); }
+  .share-total-num.err { color: var(--red); }
+  .share-total-msg { font-size: 11px; color: var(--gray-500); }
+  .share-total-msg.ok  { color: var(--green); }
+  .share-total-msg.err { color: var(--red); }
+
+  /* ─── COUPON TOGGLE ─── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+  }
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--gray-300);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--red); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  .coupon-section { display: none; }
+  .coupon-section.active { display: block; }
+
+  /* ─── UNIT SELECTOR ─── */
+  .unit-selector {
+    display: flex;
+    gap: 0;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    width: fit-content;
+    margin-bottom: 12px;
+  }
+  .unit-btn {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: none;
+    background: var(--white);
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-right: 1.5px solid var(--gray-300);
+  }
+  .unit-btn:last-child { border-right: none; }
+  .unit-btn.active {
+    background: var(--red);
+    color: white;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    height: 1px;
+    background: var(--gray-100);
+    margin: 16px 0;
+  }
+
+  /* ─── RIGHT PANEL (RESULT) ─── */
+  .result-panel {
+    position: sticky;
+    top: 78px;
+  }
+
+  .result-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+  }
+  .result-header {
+    background: var(--red);
+    padding: 16px 20px;
+    color: white;
+  }
+  .result-header h2 {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .result-header p {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-top: 3px;
+  }
+
+  .result-body { padding: 20px; }
+
+  .result-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--gray-100);
+    gap: 8px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .r-label {
+    font-size: 12.5px;
+    color: var(--gray-600);
+    font-weight: 500;
+    flex: 1;
+    line-height: 1.4;
+  }
+  .result-row .r-label small {
+    display: block;
+    font-size: 10.5px;
+    color: var(--gray-400);
+    margin-top: 1px;
+  }
+  .result-row .r-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-800);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .result-row .r-value.deduct { color: var(--red); }
+  .result-row .r-value.income { color: var(--green); }
+
+  .result-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 4px 0;
+  }
+
+  .result-total {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 14px;
+  }
+  .result-total .t-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .result-total .t-row:last-child { margin-bottom: 0; }
+  .result-total .t-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+  }
+  .result-total .t-value {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--gray-900);
+    letter-spacing: -0.5px;
+  }
+  .result-total .margin-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+    margin-top: 10px;
+  }
+  .margin-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+  }
+  .margin-value {
+    font-size: 26px;
+    font-weight: 900;
+    font-family: 'Bebas Neue', cursive;
+    letter-spacing: 1px;
+  }
+  .margin-value.good   { color: var(--green); }
+  .margin-value.mid    { color: var(--orange); }
+  .margin-value.bad    { color: var(--red); }
+  .margin-value.zero   { color: var(--gray-400); }
+
+  /* ─── BREAKDOWN TABLE ─── */
+  .breakdown {
+    margin-top: 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .breakdown-header {
+    background: var(--gray-800);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 12px;
+    letter-spacing: 0.5px;
+  }
+  .breakdown table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .breakdown td {
+    padding: 7px 12px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .breakdown tr:last-child td { border-bottom: none; }
+  .breakdown td:last-child {
+    text-align: right;
+    font-weight: 600;
+    color: var(--gray-800);
+  }
+  .breakdown td.neg { color: var(--red); }
+  .breakdown td.pos { color: var(--green); }
+
+  /* ─── ALERT/WARNING BOX ─── */
+  .alert {
+    display: none;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 12px;
+  }
+  .alert.show { display: flex; }
+  .alert-warn {
+    background: #FFF8ED;
+    border: 1px solid #FDDBA0;
+    color: #7C4A00;
+  }
+  .alert-info {
+    background: var(--blue-bg);
+    border: 1px solid #BDD7F8;
+    color: #0C4A8E;
+  }
+  .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── RESET BTN ─── */
+  .btn-reset {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 11px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--gray-600);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Noto Sans KR', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: -0.2px;
+  }
+  .btn-reset:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-faint);
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center;
+    padding: 20px 24px 36px;
+    font-size: 11px;
+    color: var(--gray-500);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .container {
+      grid-template-columns: 1fr;
+      padding: 16px 16px 48px;
+    }
+    .result-panel { position: static; }
+    .form-row.four { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .form-row, .form-row.three, .form-row.four { grid-template-columns: 1fr; }
+    .header-inner { padding: 0 16px; }
+    .logo-text { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="logo-badge">11ST</div>
+      <div class="logo-text">MD 전용 마진 계산기 v2.0</div>
+    </div>
+    <div class="header-badge">주방가전 카테고리</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ════ LEFT COLUMN ════ -->
+  <div class="left-col">
+
+    <!-- CARD 1: 카테고리 수수료 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-number">1</div>
+        <div class="card-title">카테고리 수수료</div>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="field">
+            <label>카테고리 선택</label>
+            <select id="catSelect" onchange="onCatChange()">
+              <option value="9">주방가전 (9%)</option>
+              <option value="7">소형가전 (7%)</option>
+              <option value="8">생활가전 (8%)</option>
+              <option value="10">뷰티/헬스 (10%)</option>
+              <option value="11">패션/의류 (11%)</option>
+              <option value="custom">직접 입력</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>수수료율 <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="number" id="commRate" min="0" max="30" step="0.1" value="9" oninput="calc()">
+              <span class="unit">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: 가격 설정 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-number">2</div>
+        <div class="card-title">가격 설정</div>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="field">
+            <label>정상 판매가</label>
+            <div class="input-wrap">
+              <input type="number" id="normalPrice" min="0" step="100" placeholder="0" oninput="calc()">
+              <span class="unit">원</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>행사 적용 판매가 <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="number" id="salePrice" min="0" step="100" placeholder="0" oninput="calc()">
+              <span class="unit">원</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>소비자 부담 배송비</label>
+            <div class="input-wrap">
+              <input type="number" id="shipFee" min="0" step="100" placeholder="0 (무료배송 시 0)" oninput="calc()">
+              <span class="unit">원</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>원가 (마진율 참고용)</label>
+            <div class="input-wrap">
+              <input type="number" id="costPrice" min="0" step="100" placeholder="0 (선택사항)" oninput="calc()">
+              <span class="unit">원</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: 즉시할인 쿠폰 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-number">3</div>
+        <div class="card-title">즉시할인 쿠폰</div>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="imm_toggle" onchange="toggleSection('imm')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">즉시할인 쿠폰 사용</span>
+        </div>
+        <div class="coupon-section" id="imm_section">
+          <div class="unit-selector" id="imm_unit_sel">
+            <button class="unit-btn active" onclick="setImmUnit('%')">% 비율</button>
+            <button class="unit-btn" onclick="setImmUnit('₩')">₩ 금액</button>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label id="imm_input_label">즉시할인율</label>
+              <div class="input-wrap">
+                <input type="number" id="immVal" min="0" step="0.1" placeholder="0" oninput="calc()">
+                <span class="unit" id="imm_unit_disp">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>할인 금액 (자동)</label>
+              <div class="input-wrap">
+                <input type="text" id="immAmt" readonly placeholder="—" style="background:#F8F9FA;color:#495057">
+                <span class="unit">원</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="share-group">
+            <div class="share-label">분담 비율 설정</div>
+            <div class="share-inputs" id="imm_share_inputs">
+              <div class="share-item">
+                <span class="share-tag tag-11st">11번가</span>
+                <div class="input-wrap">
+                  <input type="number" id="imm_11st" min="0" max="100" value="50" oninput="updateShareTotal('imm'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+              <div class="share-item">
+                <span class="share-tag tag-seller">셀러</span>
+                <div class="input-wrap">
+                  <input type="number" id="imm_seller" min="0" max="100" value="50" oninput="updateShareTotal('imm'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="share-total" id="imm_total_row">
+              <span class="dot"></span>
+              <span class="share-total-num" id="imm_total_num">합계: 100%</span>
+              <span class="share-total-msg" id="imm_total_msg">✓ 정상</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4: 중복할인 쿠폰 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-number">4</div>
+        <div class="card-title">중복할인 쿠폰</div>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="dup_toggle" onchange="toggleSection('dup')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">중복할인 쿠폰 사용</span>
+        </div>
+        <div class="coupon-section" id="dup_section">
+          <div class="unit-selector" id="dup_unit_sel">
+            <button class="unit-btn active" onclick="setDupUnit('%')">% 비율</button>
+            <button class="unit-btn" onclick="setDupUnit('₩')">₩ 금액</button>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label id="dup_input_label">중복할인율</label>
+              <div class="input-wrap">
+                <input type="number" id="dupVal" min="0" step="0.1" placeholder="0" oninput="calc()">
+                <span class="unit" id="dup_unit_disp">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>할인 금액 (자동)</label>
+              <div class="input-wrap">
+                <input type="text" id="dupAmt" readonly placeholder="—" style="background:#F8F9FA;color:#495057">
+                <span class="unit">원</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="share-group">
+            <div class="share-label">분담 비율 설정</div>
+            <div class="share-inputs">
+              <div class="share-item">
+                <span class="share-tag tag-11st">11번가</span>
+                <div class="input-wrap">
+                  <input type="number" id="dup_11st" min="0" max="100" value="25" oninput="updateShareTotal('dup'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+              <div class="share-item">
+                <span class="share-tag tag-seller">셀러</span>
+                <div class="input-wrap">
+                  <input type="number" id="dup_seller" min="0" max="100" value="25" oninput="updateShareTotal('dup'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+              <div class="share-item">
+                <span class="share-tag tag-maker">제조사</span>
+                <div class="input-wrap">
+                  <input type="number" id="dup_maker" min="0" max="100" value="25" oninput="updateShareTotal('dup'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+              <div class="share-item">
+                <span class="share-tag tag-other">기타</span>
+                <div class="input-wrap">
+                  <input type="number" id="dup_other" min="0" max="100" value="25" oninput="updateShareTotal('dup'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="share-total" id="dup_total_row">
+              <span class="dot"></span>
+              <span class="share-total-num" id="dup_total_num">합계: 100%</span>
+              <span class="share-total-msg" id="dup_total_msg">✓ 정상</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 5: 카드할인 쿠폰 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-number">5</div>
+        <div class="card-title">카드할인 쿠폰</div>
+      </div>
+      <div class="card-body">
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="card_toggle" onchange="toggleSection('card')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">카드할인 쿠폰 사용</span>
+        </div>
+        <div class="coupon-section" id="card_section">
+          <div class="unit-selector" id="card_unit_sel">
+            <button class="unit-btn active" onclick="setCardUnit('%')">% 비율</button>
+            <button class="unit-btn" onclick="setCardUnit('₩')">₩ 금액</button>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label id="card_input_label">카드할인율</label>
+              <div class="input-wrap">
+                <input type="number" id="cardVal" min="0" step="0.1" placeholder="0" oninput="calc()">
+                <span class="unit" id="card_unit_disp">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>할인 금액 (자동)</label>
+              <div class="input-wrap">
+                <input type="text" id="cardAmt" readonly placeholder="—" style="background:#F8F9FA;color:#495057">
+                <span class="unit">원</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="share-group">
+            <div class="share-label">분담 비율 설정</div>
+            <div class="share-inputs">
+              <div class="share-item">
+                <span class="share-tag tag-11st">11번가</span>
+                <div class="input-wrap">
+                  <input type="number" id="card_11st" min="0" max="100" value="50" oninput="updateShareTotal('card'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+              <div class="share-item">
+                <span class="share-tag tag-seller">셀러</span>
+                <div class="input-wrap">
+                  <input type="number" id="card_seller" min="0" max="100" value="50" oninput="updateShareTotal('card'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+              <div class="share-item">
+                <span class="share-tag tag-maker" style="background:#EEF2FF;color:#3451B2;min-width:64px;">카드사</span>
+                <div class="input-wrap">
+                  <input type="number" id="card_issuer" min="0" max="100" value="0" oninput="updateShareTotal('card'); calc()">
+                  <span class="unit">%</span>
+                </div>
+              </div>
+            </div>
+            <div class="share-total" id="card_total_row">
+              <span class="dot"></span>
+              <span class="share-total-num" id="card_total_num">합계: 100%</span>
+              <span class="share-total-msg" id="card_total_msg">✓ 정상</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /left-col -->
+
+  <!-- ════ RIGHT COLUMN ════ -->
+  <div class="result-panel">
+    <div class="result-card">
+      <div class="result-header">
+        <h2>📊 정산 시뮬레이션 결과</h2>
+        <p>입력값 변경 시 실시간 자동 계산</p>
+      </div>
+      <div class="result-body">
+
+        <!-- 매출 구성 -->
+        <div class="result-row">
+          <div class="r-label">행사 판매가</div>
+          <div class="r-value" id="r_salePrice">—</div>
+        </div>
+        <div class="result-row">
+          <div class="r-label">배송비 (소비자 부담)</div>
+          <div class="r-value" id="r_shipFee">—</div>
+        </div>
+        <div class="result-row" style="background:#F8F9FA;">
+          <div class="r-label" style="font-weight:700;color:#343A40;">총 매출액</div>
+          <div class="r-value income" id="r_totalRev">—</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 공제 항목 -->
+        <div class="result-row">
+          <div class="r-label">
+            카테고리 수수료
+            <small id="r_commNote">—</small>
+          </div>
+          <div class="r-value deduct" id="r_comm">—</div>
+        </div>
+        <div class="result-row" id="r_imm_row" style="display:none">
+          <div class="r-label">
+            즉시할인 셀러 부담
+            <small id="r_immNote">—</small>
+          </div>
+          <div class="r-value deduct" id="r_immSeller">—</div>
+        </div>
+        <div class="result-row" id="r_dup_row" style="display:none">
+          <div class="r-label">
+            중복할인 셀러 부담
+            <small id="r_dupNote">—</small>
+          </div>
+          <div class="r-value deduct" id="r_dupSeller">—</div>
+        </div>
+        <div class="result-row" id="r_card_row" style="display:none">
+          <div class="r-label">
+            카드할인 셀러 부담
+            <small id="r_cardNote">—</small>
+          </div>
+          <div class="r-value deduct" id="r_cardSeller">—</div>
+        </div>
+        <div class="result-row" id="r_coupon_fee_row" style="display:none">
+          <div class="r-label">
+            쿠폰비용 (총할인의 20%)
+            <small id="r_couponFeeNote">min(총할인×20%, 판매가×9%)</small>
+          </div>
+          <div class="r-value deduct" id="r_couponFee">—</div>
+        </div>
+        <div class="result-row" style="background:#FFF5F5;">
+          <div class="r-label" style="font-weight:700;color:#B5151B;">공제 합계</div>
+          <div class="r-value deduct" id="r_totalDeduct">—</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- 최종 정산 -->
+        <div class="result-total">
+          <div class="t-row">
+            <span class="t-label">최종 정산금액</span>
+            <span class="t-value" id="r_settle">—</span>
+          </div>
+          <div class="margin-row">
+            <span class="margin-label">정산 마진율</span>
+            <span class="margin-value zero" id="r_marginPct">—</span>
+          </div>
+        </div>
+
+        <!-- 원가 대비 마진 (입력 시) -->
+        <div id="r_gross_row" style="display:none">
+          <div class="result-total" style="margin-top:8px;background:var(--green-bg);border-color:#A8DEC0;">
+            <div class="t-row">
+              <span class="t-label" style="color:var(--green)">매출총이익 (정산–원가)</span>
+              <span class="t-value" style="color:var(--green)" id="r_gross">—</span>
+            </div>
+            <div class="margin-row" style="border-color:#A8DEC0;">
+              <span class="margin-label" style="color:var(--green)">GPM (매출총이익률)</span>
+              <span class="margin-value zero" id="r_gpm">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 쿠폰 캡 경고 -->
+        <div class="alert alert-warn" id="alert_cap">
+          <span class="alert-icon">⚠️</span>
+          <span id="alert_cap_msg"></span>
+        </div>
+
+        <!-- 분담 합계 오류 경고 -->
+        <div class="alert alert-warn" id="alert_share">
+          <span class="alert-icon">⚠️</span>
+          <span>분담 비율 합계가 100%가 아닌 항목이 있습니다. 확인 후 재입력해 주세요.</span>
+        </div>
+
+        <!-- 명세 테이블 -->
+        <div class="breakdown">
+          <div class="breakdown-header">▸ 공제 항목 상세 내역</div>
+          <table>
+            <tbody id="breakdown_tbody">
+              <tr><td colspan="2" style="color:#ADB5BD;text-align:center;padding:14px 12px;font-size:12px;">판매가를 입력하면 내역이 표시됩니다</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button class="btn-reset" onclick="resetAll()">↺ 전체 초기화</button>
+
+      </div>
+    </div>
+  </div><!-- /result-panel -->
+
+</div><!-- /container -->
+
+<footer>
+  11번가 MD 전용 마진 계산기 · 주방가전 카테고리 · 본 계산기는 내부 시뮬레이션 용도이며 실제 정산금액과 차이가 있을 수 있습니다.
+</footer>
+
+<script>
+  // ─── STATE ───
+  let immUnit  = '%';
+  let dupUnit  = '%';
+  let cardUnit = '%';
+
+  // ─── CATEGORY SELECT ───
+  function onCatChange() {
+    const sel = document.getElementById('catSelect');
+    const rateInput = document.getElementById('commRate');
+    if (sel.value !== 'custom') rateInput.value = sel.value;
+    calc();
+  }
+
+  // ─── TOGGLE SECTIONS ───
+  function toggleSection(id) {
+    const section = document.getElementById(id + '_section');
+    const chk = document.getElementById(id + '_toggle');
+    section.classList.toggle('active', chk.checked);
+    calc();
+  }
+
+  // ─── IMM UNIT ───
+  function setImmUnit(u) {
+    immUnit = u;
+    document.querySelectorAll('#imm_unit_sel .unit-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && u === '%') || (i === 1 && u === '₩'));
+    });
+    document.getElementById('imm_unit_disp').textContent = u === '%' ? '%' : '원';
+    document.getElementById('imm_input_label').textContent = u === '%' ? '즉시할인율' : '즉시할인 금액';
+    document.getElementById('immVal').step = u === '%' ? '0.1' : '100';
+    calc();
+  }
+
+  // ─── DUP UNIT ───
+  function setDupUnit(u) {
+    dupUnit = u;
+    document.querySelectorAll('#dup_unit_sel .unit-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && u === '%') || (i === 1 && u === '₩'));
+    });
+    document.getElementById('dup_unit_disp').textContent = u === '%' ? '%' : '원';
+    document.getElementById('dup_input_label').textContent = u === '%' ? '중복할인율' : '중복할인 금액';
+    document.getElementById('dupVal').step = u === '%' ? '0.1' : '100';
+    calc();
+  }
+
+  // ─── CARD UNIT ───
+  function setCardUnit(u) {
+    cardUnit = u;
+    document.querySelectorAll('#card_unit_sel .unit-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && u === '%') || (i === 1 && u === '₩'));
+    });
+    document.getElementById('card_unit_disp').textContent = u === '%' ? '%' : '원';
+    document.getElementById('card_input_label').textContent = u === '%' ? '카드할인율' : '카드할인 금액';
+    document.getElementById('cardVal').step = u === '%' ? '0.1' : '100';
+    calc();
+  }
+
+  // ─── SHARE TOTAL ───
+  function updateShareTotal(prefix) {
+    const idMap = {
+      imm:  ['imm_11st',  'imm_seller'],
+      dup:  ['dup_11st',  'dup_seller', 'dup_maker', 'dup_other'],
+      card: ['card_11st', 'card_seller', 'card_issuer'],
+    };
+    const ids = idMap[prefix];
+    const sum = ids.reduce((acc, id) => acc + (parseFloat(document.getElementById(id).value) || 0), 0);
+    const rounded = Math.round(sum * 10) / 10;
+    const ok = Math.abs(rounded - 100) < 0.01;
+    const numEl = document.getElementById(prefix + '_total_num');
+    const msgEl = document.getElementById(prefix + '_total_msg');
+    numEl.textContent = `합계: ${rounded}%`;
+    numEl.className = 'share-total-num ' + (ok ? 'ok' : 'err');
+    msgEl.textContent = ok ? '✓ 정상' : '✗ 100%가 되도록 조정하세요';
+    msgEl.className = 'share-total-msg ' + (ok ? 'ok' : 'err');
+    return ok;
+  }
+
+  // ─── FORMAT ───
+  function fmt(n) {
+    if (isNaN(n) || n === null) return '—';
+    return Math.round(n).toLocaleString('ko-KR') + '원';
+  }
+  function fmtPct(n) {
+    if (isNaN(n)) return '—';
+    return n.toFixed(2) + '%';
+  }
+
+  // ─── MAIN CALC ───
+  function calc() {
+    const commRate  = parseFloat(document.getElementById('commRate').value) || 0;
+    const salePrice = parseFloat(document.getElementById('salePrice').value) || 0;
+    const shipFee   = parseFloat(document.getElementById('shipFee').value) || 0;
+    const costPrice = parseFloat(document.getElementById('costPrice').value) || 0;
+    const immActive  = document.getElementById('imm_toggle').checked;
+    const dupActive  = document.getElementById('dup_toggle').checked;
+    const cardActive = document.getElementById('card_toggle').checked;
+
+    // ── 즉시할인 ──
+    const immRaw    = parseFloat(document.getElementById('immVal').value) || 0;
+    const immAmt    = immActive ? (immUnit === '%' ? salePrice * immRaw / 100 : immRaw) : 0;
+    const imm11stPct = parseFloat(document.getElementById('imm_11st').value) || 0;
+    const immSelPct  = parseFloat(document.getElementById('imm_seller').value) || 0;
+    const immSelAmt  = immActive ? (immAmt * immSelPct / 100) : 0;
+
+    // ── 중복할인 ──
+    const dupRaw    = parseFloat(document.getElementById('dupVal').value) || 0;
+    const baseForDup = salePrice - immAmt;
+    const dupAmt    = dupActive ? (dupUnit === '%' ? baseForDup * dupRaw / 100 : dupRaw) : 0;
+    const dup11stPct = parseFloat(document.getElementById('dup_11st').value) || 0;
+    const dupSelPct  = parseFloat(document.getElementById('dup_seller').value) || 0;
+    const dupSelAmt  = dupActive ? (dupAmt * dupSelPct / 100) : 0;
+
+    // ── 카드할인 ──
+    const cardRaw    = parseFloat(document.getElementById('cardVal').value) || 0;
+    const baseForCard = salePrice - immAmt - dupAmt;
+    const cardAmt    = cardActive ? (cardUnit === '%' ? baseForCard * cardRaw / 100 : cardRaw) : 0;
+    const card11stPct  = parseFloat(document.getElementById('card_11st').value) || 0;
+    const cardSelPct   = parseFloat(document.getElementById('card_seller').value) || 0;
+    const cardIssuerPct = parseFloat(document.getElementById('card_issuer').value) || 0;
+    const cardSelAmt   = cardActive ? (cardAmt * cardSelPct / 100) : 0;
+
+    // ── 쿠폰비용 (즉시+중복 기준, 카드할인 제외) ──
+    const totalCouponAmt = (immActive ? immAmt : 0) + (dupActive ? dupAmt : 0);
+    const couponFeeCap   = salePrice * 0.09;
+    const rawCouponFee   = totalCouponAmt * 0.20;
+    const couponFee      = (immActive || dupActive) ? Math.min(rawCouponFee, couponFeeCap) : 0;
+    const isCapped       = (rawCouponFee > couponFeeCap) && (immActive || dupActive);
+
+    // ── 표시 금액 업데이트 ──
+    document.getElementById('immAmt').value  = immActive  ? Math.round(immAmt).toLocaleString('ko-KR')  : '';
+    document.getElementById('dupAmt').value  = dupActive  ? Math.round(dupAmt).toLocaleString('ko-KR')  : '';
+    document.getElementById('cardAmt').value = cardActive ? Math.round(cardAmt).toLocaleString('ko-KR') : '';
+
+    // ── 수수료 / 총매출 ──
+    const commAmt  = salePrice * commRate / 100;
+    const totalRev = salePrice + shipFee;
+
+    // ── 공제 합계 ──
+    const totalDeduct = commAmt + immSelAmt + dupSelAmt + cardSelAmt + couponFee;
+
+    // ── 최종 정산 ──
+    const settle    = totalRev - totalDeduct;
+    const marginPct = totalRev > 0 ? (settle / totalRev * 100) : NaN;
+    const gross     = costPrice > 0 ? settle - costPrice : NaN;
+    const gpm       = (costPrice > 0 && totalRev > 0) ? (gross / totalRev * 100) : NaN;
+
+    // ── OUTPUT ──
+    setVal('r_salePrice', fmt(salePrice));
+    setVal('r_shipFee',   fmt(shipFee));
+    setVal('r_totalRev',  fmt(totalRev));
+    setVal('r_comm',      salePrice > 0 ? '-' + fmt(commAmt) : '—');
+    document.getElementById('r_commNote').textContent =
+      salePrice > 0 ? `행사가 ${fmt(salePrice)} × ${commRate}%` : '';
+
+    // 즉시할인 행
+    document.getElementById('r_imm_row').style.display = immActive ? '' : 'none';
+    if (immActive) {
+      setVal('r_immSeller', '-' + fmt(immSelAmt));
+      document.getElementById('r_immNote').textContent =
+        `총할인 ${fmt(immAmt)} × 셀러 ${immSelPct}%`;
+    }
+
+    // 중복할인 행
+    document.getElementById('r_dup_row').style.display = dupActive ? '' : 'none';
+    if (dupActive) {
+      setVal('r_dupSeller', '-' + fmt(dupSelAmt));
+      document.getElementById('r_dupNote').textContent =
+        `총할인 ${fmt(dupAmt)} × 셀러 ${dupSelPct}%`;
+    }
+
+    // 카드할인 행
+    document.getElementById('r_card_row').style.display = cardActive ? '' : 'none';
+    if (cardActive) {
+      setVal('r_cardSeller', '-' + fmt(cardSelAmt));
+      document.getElementById('r_cardNote').textContent =
+        `총할인 ${fmt(cardAmt)} × 셀러 ${cardSelPct}%`;
+    }
+
+    // 쿠폰비용 행
+    document.getElementById('r_coupon_fee_row').style.display = (immActive || dupActive) ? '' : 'none';
+    if (immActive || dupActive) {
+      setVal('r_couponFee', '-' + fmt(couponFee));
+      document.getElementById('r_couponFeeNote').textContent =
+        `총할인 ${fmt(totalCouponAmt)} × 20%${isCapped ? ' → 9% 상한 적용' : ''}`;
+    }
+
+    setVal('r_totalDeduct', '-' + fmt(totalDeduct));
+    setVal('r_settle', fmt(settle));
+
+    // 마진율 색상
+    const mEl = document.getElementById('r_marginPct');
+    if (isNaN(marginPct)) {
+      mEl.textContent = '—'; mEl.className = 'margin-value zero';
+    } else {
+      mEl.textContent = fmtPct(marginPct);
+      mEl.className = 'margin-value ' + (marginPct >= 70 ? 'good' : marginPct >= 50 ? 'mid' : 'bad');
+    }
+
+    // GPM 블록
+    const grossRow = document.getElementById('r_gross_row');
+    if (costPrice > 0) {
+      grossRow.style.display = '';
+      setVal('r_gross', fmt(gross));
+      const gEl = document.getElementById('r_gpm');
+      gEl.textContent = isNaN(gpm) ? '—' : fmtPct(gpm);
+      gEl.className = 'margin-value ' + (gpm >= 30 ? 'good' : gpm >= 10 ? 'mid' : 'bad');
+    } else {
+      grossRow.style.display = 'none';
+    }
+
+    // 쿠폰 캡 경고
+    const alertCap = document.getElementById('alert_cap');
+    if (isCapped) {
+      alertCap.classList.add('show');
+      document.getElementById('alert_cap_msg').textContent =
+        `쿠폰비용(${fmt(rawCouponFee)})이 판매가의 9%(${fmt(couponFeeCap)})를 초과하여 ${fmt(couponFeeCap)}으로 적용되었습니다.`;
+    } else {
+      alertCap.classList.remove('show');
+    }
+
+    // 분담 합계 오류
+    const immOk  = !immActive  || updateShareTotal('imm');
+    const dupOk  = !dupActive  || updateShareTotal('dup');
+    const cardOk = !cardActive || updateShareTotal('card');
+    document.getElementById('alert_share').classList.toggle('show', !immOk || !dupOk || !cardOk);
+
+    // 상세 내역 테이블
+    renderBreakdown({
+      salePrice, shipFee, totalRev, commAmt, commRate,
+      immActive, immAmt, immSelAmt, imm11stPct, immSelPct,
+      dupActive, dupAmt, dupSelAmt, dup11stPct, dupSelPct,
+      cardActive, cardAmt, cardSelAmt, card11stPct, cardSelPct, cardIssuerPct,
+      couponFee, isCapped, couponFeeCap, rawCouponFee,
+      totalDeduct, settle
+    });
+  }
+
+  function setVal(id, val) {
+    document.getElementById(id).textContent = val;
+  }
+
+  function renderBreakdown(d) {
+    const tbody = document.getElementById('breakdown_tbody');
+    if (d.salePrice <= 0) {
+      tbody.innerHTML = '<tr><td colspan="2" style="color:#ADB5BD;text-align:center;padding:14px 12px;font-size:12px;">판매가를 입력하면 내역이 표시됩니다</td></tr>';
+      return;
+    }
+    let rows = '';
+    rows += tr('행사 판매가', fmt(d.salePrice), 'pos');
+    rows += tr('배송비', fmt(d.shipFee), 'pos');
+    rows += tr('총 매출', fmt(d.totalRev), 'pos');
+    rows += trDivider();
+    rows += tr(`카테고리 수수료 (${d.commRate}%)`, '-' + fmt(d.commAmt), 'neg');
+    if (d.immActive) {
+      rows += tr(`즉시할인 총액 (${d.immAmt > 0 ? fmtPct(d.immAmt / d.salePrice * 100) : '0%'})`, '-' + fmt(d.immAmt), '');
+      rows += tr(`  ↳ 11번가 부담 (${d.imm11stPct}%)`, fmt(d.immAmt * d.imm11stPct / 100), '');
+      rows += tr(`  ↳ 셀러 부담 (${d.immSelPct}%)`, '-' + fmt(d.immSelAmt), 'neg');
+    }
+    if (d.dupActive) {
+      rows += tr(`중복할인 총액`, '-' + fmt(d.dupAmt), '');
+      rows += tr(`  ↳ 11번가 부담 (${d.dup11stPct}%)`, fmt(d.dupAmt * d.dup11stPct / 100), '');
+      rows += tr(`  ↳ 셀러 부담 (${d.dupSelPct}%)`, '-' + fmt(d.dupSelAmt), 'neg');
+    }
+    if (d.cardActive) {
+      rows += tr(`카드할인 총액`, '-' + fmt(d.cardAmt), '');
+      rows += tr(`  ↳ 11번가 부담 (${d.card11stPct}%)`, fmt(d.cardAmt * d.card11stPct / 100), '');
+      rows += tr(`  ↳ 셀러 부담 (${d.cardSelPct}%)`, '-' + fmt(d.cardSelAmt), 'neg');
+      rows += tr(`  ↳ 카드사 부담 (${d.cardIssuerPct}%)`, fmt(d.cardAmt * d.cardIssuerPct / 100), '');
+    }
+    if (d.immActive || d.dupActive) {
+      rows += tr(
+        `쿠폰비용 (총할인×20%${d.isCapped ? ', 9% 상한' : ''})`,
+        '-' + fmt(d.couponFee), 'neg'
+      );
+    }
+    rows += trDivider();
+    rows += tr('공제 합계', '-' + fmt(d.totalDeduct), 'neg');
+    rows += tr('최종 정산금액', fmt(d.settle), 'pos');
+    tbody.innerHTML = rows;
+  }
+
+  function tr(label, value, cls) {
+    return `<tr><td style="color:#495057">${label}</td><td class="${cls}">${value}</td></tr>`;
+  }
+  function trDivider() {
+    return '<tr><td colspan="2" style="padding:0;height:1px;background:#E9ECEF;"></td></tr>';
+  }
+
+  // ─── RESET ───
+  function resetAll() {
+    document.getElementById('catSelect').value = '9';
+    document.getElementById('commRate').value = '9';
+    ['normalPrice','salePrice','shipFee','costPrice','immVal','dupVal','cardVal'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    ['imm_toggle','dup_toggle','card_toggle'].forEach(id => {
+      document.getElementById(id).checked = false;
+    });
+    ['imm_section','dup_section','card_section'].forEach(id => {
+      document.getElementById(id).classList.remove('active');
+    });
+    document.getElementById('imm_11st').value   = 50;
+    document.getElementById('imm_seller').value = 50;
+    document.getElementById('dup_11st').value   = 25;
+    document.getElementById('dup_seller').value = 25;
+    document.getElementById('dup_maker').value  = 25;
+    document.getElementById('dup_other').value  = 25;
+    document.getElementById('card_11st').value    = 50;
+    document.getElementById('card_seller').value  = 50;
+    document.getElementById('card_issuer').value  = 0;
+    immUnit = '%'; setImmUnit('%');
+    dupUnit = '%'; setDupUnit('%');
+    cardUnit = '%'; setCardUnit('%');
+    updateShareTotal('imm');
+    updateShareTotal('dup');
+    updateShareTotal('card');
+    calc();
+  }
+
+  // ─── INIT ───
+  updateShareTotal('imm');
+  updateShareTotal('dup');
+  updateShareTotal('card');
+  calc();
+</script>
+
+  // ─── CATEGORY SELECT ───
+  function onCatChange() {
+    const sel = document.getElementById('catSelect');
+    const rateInput = document.getElementById('commRate');
+    if (sel.value === 'custom') {
+      rateInput.readOnly = false;
+      rateInput.focus();
+    } else {
+      rateInput.value = sel.value;
+      rateInput.readOnly = false;
+    }
+    calc();
+  }
+
+  // ─── TOGGLE SECTIONS ───
+  function toggleSection(id) {
+    const section = document.getElementById(id + '_section');
+    const chk = document.getElementById(id + '_toggle');
+    if (chk.checked) {
+      section.classList.add('active');
+    } else {
+      section.classList.remove('active');
+    }
+    calc();
+  }
+
+  // ─── DUP UNIT ───
+  function setDupUnit(u) {
+    dupUnit = u;
+    const btns = document.querySelectorAll('#dup_unit_sel .unit-btn');
+    btns.forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && u === '%') || (i === 1 && u === '₩'));
+    });
+    document.getElementById('dup_unit_disp').textContent = u === '%' ? '%' : '원';
+    document.getElementById('dup_input_label').textContent = u === '%' ? '중복할인율' : '중복할인 금액';
+    document.getElementById('dupVal').step = u === '%' ? '0.1' : '100';
+    calc();
+  }
+
+</body>
+</html>
